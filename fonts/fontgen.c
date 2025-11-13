@@ -54,7 +54,7 @@ void make_8_16()
 
 DONE:
     // ExportImage(target, "src/font_8_16.png");
-    ExportImageAsCode(target, "src/font_8_16.h");
+    ExportImageAsCode(target, "fonts/font_8_16.c");
 
 #undef FNT_WIDTH
 #undef FNT_HEIGHT
@@ -100,7 +100,7 @@ void make_16_32()
 
 DONE:
     // ExportImage(target, "src/font_16_32.png");
-    ExportImageAsCode(target, "src/font_16_32.h");
+    ExportImageAsCode(target, "fonts/font_16_32.c");
 
 #undef FNT_WIDTH
 #undef FNT_HEIGHT

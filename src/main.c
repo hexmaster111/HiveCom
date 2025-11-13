@@ -9,7 +9,7 @@
 
 void HandleClayErrors(Clay_ErrorData ed)
 {
-    printf("%s", ed.errorText.chars);
+    printf("%s\n", ed.errorText.chars);
     // if (errorData.errorType == CLAY_ERROR_TYPE_ELEMENTS_CAPACITY_EXCEEDED)
     // {
     //     reinitializeClay = true;
@@ -152,7 +152,7 @@ Clay_Color UserColor(hc_MsgTree msg)
     return RAYLIB_COLOR_TO_CLAY_COLOR(PURPLE);
 }
 
-void RenderMessage(hc_MsgTree msg)
+void RenderMessage(hc_MsgTree msg, int idx)
 {
     CLAY((Clay_ElementDeclaration){
         .layout = {
@@ -165,29 +165,51 @@ void RenderMessage(hc_MsgTree msg)
         Clay_String message = HC_SLICE_TO_CLAY_STRING(msg.content.text);
 
         CLAY((Clay_ElementDeclaration){
-            .backgroundColor = UserColor(msg),
+            .id = CLAY_IDI("msg contanor", idx),
             .layout = {
-                .padding = {.right = 8},
                 .sizing = {
                     .height = CLAY_SIZING_FIT(0),
-                    .width = CLAY_SIZING_FIXED(64),
+                    .width = CLAY_SIZING_FIT(0),
                 },
             },
         })
         {
 
-            CLAY_TEXT(name, CLAY_TEXT_CONFIG((Clay_TextElementConfig){
-                                .fontId = FONTID_DEFAULT,
-                                .fontSize = 16,
-                                .textColor = {255, 255, 255, 255},
-                            }));
-        }
+            CLAY((Clay_ElementDeclaration){
+                .backgroundColor = UserColor(msg),
+                .layout = {
+                    .sizing = {
+                        .height = CLAY_SIZING_FIT(0),
+                        .width = CLAY_SIZING_FIXED(80),
+                    },
+                },
+            })
+            {
 
-        CLAY_TEXT(message, CLAY_TEXT_CONFIG((Clay_TextElementConfig){
-                               .fontId = FONTID_DEFAULT,
-                               .fontSize = 16,
-                               .textColor = {255, 255, 255, 255},
-                           }));
+                CLAY_TEXT(name, CLAY_TEXT_CONFIG((Clay_TextElementConfig){
+                                    .fontId = FONTID_DEFAULT,
+                                    .fontSize = 16,
+                                    .textColor = {255, 255, 255, 255},
+                                }));
+            }
+
+            CLAY((Clay_ElementDeclaration){
+                .layout = {
+                    .padding = {.left = 8},
+                    .sizing = {
+                        .height = CLAY_SIZING_FIT(0),
+                        .width = CLAY_SIZING_GROW(0),
+                    },
+                },
+            })
+            {
+                CLAY_TEXT(message, CLAY_TEXT_CONFIG((Clay_TextElementConfig){
+                                       .fontId = FONTID_DEFAULT,
+                                       .fontSize = 16,
+                                       .textColor = {255, 255, 255, 255},
+                                   }));
+            }
+        }
     }
 }
 
@@ -195,40 +217,38 @@ Clay_RenderCommandArray DoLayout()
 {
     hc_MsgTree root =
         {
-            .content = (hc_MsgContent){
-                .text = (hc_slice){.base = "FIRST!!!!", .len = sizeof("FIRST!!!!") - 1},
-            },
-            .auther = (hc_MsgAuther){.name = (hc_slice){.base = "System", .len = sizeof("System") - 1}},
+            .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("FIRST!!!")},
+            .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("System")},
             .right = 0,
             .down = &(hc_MsgTree){
-                .auther = (hc_MsgAuther){.name = (hc_slice){.base = "MX-5050", .len = sizeof("MX-5050") - 1}},
-                .content = (hc_MsgContent){
-                    .text = (hc_slice){.base = "Hello, world", .len = sizeof("Hello, world") - 1},
-                },
-
+                .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("MX-5050")},
+                .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Hello, and welcome back.")},
                 .down = &(hc_MsgTree){
-                    .auther = (hc_MsgAuther){.name = (hc_slice){.base = "W01F-5088", .len = sizeof("W01F-5088") - 1}},
-                    .content = (hc_MsgContent){
-                        .text = (hc_slice){.base = "Hello, and welcome back", .len = sizeof("Hello, and welcome back") - 1},
+                    .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("W01F-5088")},
+                    .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Hello world!")},
+                    .down = &(hc_MsgTree){
+                        .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("Queen Hour")},
+                        .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Admit it:\nThis is the 2nd line.")},
                     },
                 },
-
             },
         };
 
     Clay_BeginLayout();
 
     CLAY((Clay_ElementDeclaration){
-        .id = CLAY_ID("content"),
+        .id = CLAY_ID("msg_log"),
         .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(LIGHTGRAY),
         .layout = {
             .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM},
     })
     {
-        RenderMessage(root);
-        RenderMessage(*root.down);
-        RenderMessage(*root.down->down);
+        RenderMessage(root, 0);
+        RenderMessage(*root.down, 1);
+        RenderMessage(*root.down->down, 2);
+        RenderMessage(*root.down->down->down, 3);
+        RenderMessage(root, 4);
 
         if (Render_Button(CLAY_STRING("Test")))
         {

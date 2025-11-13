@@ -1,10 +1,10 @@
 
 
 font_8_16.o:
-	cc -c src/font_8_16.c -ofont_8_16.o
+	cc -c fonts/font_8_16.c -ofont_8_16.o
 
 font_16_32.o:
-	cc -c src/font_16_32.c -ofont_16_32.o
+	cc -c fonts/font_16_32.c -ofont_16_32.o
 
 linux: font_16_32.o font_8_16.o
 	cc -c src/main.c -ohivecom_linux.o

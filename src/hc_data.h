@@ -15,6 +15,7 @@ typedef struct hc_slice
 
 hc_slice hc_slice_from(const char *cstr); // does not copy
 int hc_slice_cmp(hc_slice a, hc_slice b); // 0 == same string
+#define HC_SLICE_FROM_CLIT(CLIT) (hc_slice){.base = (CLIT), .len = sizeof((CLIT)) - 1}
 
 typedef struct hc_MsgAuther
 {
