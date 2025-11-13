@@ -2,11 +2,19 @@
 #ifndef HC_DATA_H
 #define HC_DATA_H
 
+#include <stdint.h>
+#include <string.h>
+
+// This layout matches clays layout.
 typedef struct hc_slice
 {
+    bool isstatic;
+    int32_t len;
     char *base;
-    int len;
 } hc_slice;
+
+hc_slice hc_slice_from(const char *cstr); // does not copy
+int hc_slice_cmp(hc_slice a, hc_slice b); // 0 == same string
 
 typedef struct hc_MsgAuther
 {
@@ -25,13 +33,34 @@ typedef struct hc_MsgTree
     struct hc_MsgContent content;
 } hc_MsgTree;
 
-#endif //HC_DATA_H
-
+#endif // HC_DATA_H
 
 // C FILE
 #ifdef HC_DATA_IMPL
 #undef HC_DATA_IMPL
 
+hc_slice hc_slice_from(const char *cstr)
+{
+    hc_slice ret = {};
+    ret.base = (char *)cstr;
+    ret.len = strlen(cstr);
+    return ret;
+}
 
+int hc_slice_cmp(hc_slice a, hc_slice b)
+{
+    if (a.len != b.len)
+        return a.len - b.len;
 
-#endif //HC_DATA_IMPL
+    int diff = 0;
+
+    for (int32_t i = 0; i < a.len; i++)
+    {
+        if (a.base[i] != b.base[i])
+            diff += 1;
+    }
+
+    return diff;
+}
+
+#endif // HC_DATA_IMPL

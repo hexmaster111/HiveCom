@@ -21,3 +21,5 @@
     - files
         - spleen-8x16.c
         - spleen-16x32.c
+        - src/font_8_16.c -- generated off of base files
+        - src/font_16_32.c -- generated off of base files
