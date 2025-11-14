@@ -157,6 +157,9 @@ void RenderMessage(hc_MsgTree msg, int idx)
     CLAY((Clay_ElementDeclaration){
         .layout = {
             .layoutDirection = CLAY_LEFT_TO_RIGHT,
+            .sizing = {
+                .width = CLAY_SIZING_GROW(0),
+            },
         },
     })
     {
@@ -166,10 +169,20 @@ void RenderMessage(hc_MsgTree msg, int idx)
 
         CLAY((Clay_ElementDeclaration){
             .id = CLAY_IDI("msg contanor", idx),
+            .border = {
+                .color = RAYLIB_COLOR_TO_CLAY_COLOR(BLACK),
+                .width = {
+                    .bottom = Clay_Hovered() ? 1 : 0,
+                    .top = Clay_Hovered() ? 1 : 0,
+                },
+            },
             .layout = {
+                .padding = {
+                    .top = 3,
+                },
                 .sizing = {
                     .height = CLAY_SIZING_FIT(0),
-                    .width = CLAY_SIZING_FIT(0),
+                    .width = CLAY_SIZING_GROW(0),
                 },
             },
         })
@@ -179,6 +192,7 @@ void RenderMessage(hc_MsgTree msg, int idx)
                 .backgroundColor = UserColor(msg),
                 .layout = {
                     .sizing = {
+                        // .height = CLAY_SIZING_GROW(0),
                         .height = CLAY_SIZING_FIT(0),
                         .width = CLAY_SIZING_FIXED(80),
                     },
@@ -213,6 +227,17 @@ void RenderMessage(hc_MsgTree msg, int idx)
     }
 }
 
+void RenderMessageTree(hc_MsgTree *root, int i)
+{
+    i += 1;
+
+    RenderMessage(*root, i);
+    if (root->down)
+    {
+        RenderMessageTree(root->down, i);
+    }
+}
+
 Clay_RenderCommandArray DoLayout()
 {
     hc_MsgTree root =
@@ -229,6 +254,15 @@ Clay_RenderCommandArray DoLayout()
                     .down = &(hc_MsgTree){
                         .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("Queen Hour")},
                         .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Admit it:\nThis is the 2nd line.")},
+                        .down = &(hc_MsgTree){
+                            .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("6625")},
+                            .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("We are us are each other are it."
+                                                                                  "We are us are each other are it. We are us are each other are it.")},
+                            .down = &(hc_MsgTree){
+                                .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("0013")},
+                                .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Mmmwwuufff.")},
+                            },
+                        },
                     },
                 },
             },
@@ -238,21 +272,25 @@ Clay_RenderCommandArray DoLayout()
 
     CLAY((Clay_ElementDeclaration){
         .id = CLAY_ID("msg_log"),
-        .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(LIGHTGRAY),
+        .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(DARKGRAY),
         .layout = {
             .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM},
     })
     {
-        RenderMessage(root, 0);
-        RenderMessage(*root.down, 1);
-        RenderMessage(*root.down->down, 2);
-        RenderMessage(*root.down->down->down, 3);
-        RenderMessage(root, 4);
 
-        if (Render_Button(CLAY_STRING("Test")))
+        RenderMessageTree(&root, 0);
+
+        // RenderMessage(root, 0);
+        // RenderMessage(*root.down, 1);
+        // RenderMessage(*root.down->down, 2);
+        // RenderMessage(*root.down->down->down, 3);
+        // RenderMessage(*root.down->down->down->down, 4);
+        // RenderMessage(*root.down->down->down->down->down, 5);
+
+        if (Render_Button(CLAY_STRING("Send")))
         {
-            printf("Clicked Test!\n");
+            printf("Write Me!\n");
         };
     }
 
