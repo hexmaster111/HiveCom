@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     //    EnableEventWaiting();
 
     LoadFonts();
-    SetExitKey(KEY_NULL);
+    // SetExitKey(KEY_NULL);
 
     Clay_SetMeasureTextFunction(Raylib_MeasureText, fonts);
 
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
         EndDrawing();
     }
 
-    CloseWindow();
+    Clay_Raylib_Close();
 
     return 0;
 }
@@ -125,7 +125,7 @@ bool Render_Button(Clay_String text)
     bool clicked = 0;
 
     CLAY((Clay_ElementDeclaration){
-        .layout = {.padding = {16, 16, 8, 8}},
+        .layout = {.padding = {16, 16 /*, 8, 8*/}},
         .backgroundColor = HeaderButtonColor(),
         .cornerRadius = CLAY_CORNER_RADIUS(0)})
     {
@@ -155,6 +155,7 @@ Clay_Color UserColor(hc_MsgTree msg)
 void RenderMessage(hc_MsgTree msg, int idx)
 {
     CLAY((Clay_ElementDeclaration){
+        .id = CLAY_IDI("RenderMessage", idx),
         .layout = {
             .layoutDirection = CLAY_LEFT_TO_RIGHT,
             .sizing = {
@@ -168,7 +169,6 @@ void RenderMessage(hc_MsgTree msg, int idx)
         Clay_String message = HC_SLICE_TO_CLAY_STRING(msg.content.text);
 
         CLAY((Clay_ElementDeclaration){
-            .id = CLAY_IDI("msg contanor", idx),
             .border = {
                 .color = RAYLIB_COLOR_TO_CLAY_COLOR(BLACK),
                 .width = {
@@ -227,71 +227,204 @@ void RenderMessage(hc_MsgTree msg, int idx)
     }
 }
 
-void RenderMessageTree(hc_MsgTree *root, int i)
+void RenderMessageTree(hc_MsgTree *root, int *i)
 {
-    i += 1;
+    RenderMessage(*root, *i);
+    *i += 1;
 
-    RenderMessage(*root, i);
+    if (root->right)
+    {
+        CLAY((Clay_ElementDeclaration){
+            .layout = {
+                .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT(0)},
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+                .padding = {.left = 20},
+            },
+        })
+        {
+            RenderMessageTree(root->right, i);
+        }
+    }
+
     if (root->down)
     {
         RenderMessageTree(root->down, i);
     }
 }
 
-Clay_RenderCommandArray DoLayout()
+void Render_TextBox(char *buffer, size_t bufferSize)
 {
-    hc_MsgTree root =
-        {
-            .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("FIRST!!!")},
-            .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("System")},
-            .right = 0,
-            .down = &(hc_MsgTree){
-                .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("MX-5050")},
-                .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Hello, and welcome back.")},
-                .down = &(hc_MsgTree){
-                    .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("W01F-5088")},
-                    .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Hello world!")},
-                    .down = &(hc_MsgTree){
-                        .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("Queen Hour")},
-                        .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Admit it:\nThis is the 2nd line.")},
-                        .down = &(hc_MsgTree){
-                            .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("6625")},
-                            .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("We are us are each other are it."
-                                                                                  "We are us are each other are it. We are us are each other are it.")},
-                            .down = &(hc_MsgTree){
-                                .auther = (hc_MsgAuther){.name = HC_SLICE_FROM_CLIT("0013")},
-                                .content = (hc_MsgContent){.text = HC_SLICE_FROM_CLIT("Mmmwwuufff.")},
-                            },
-                        },
-                    },
-                },
-            },
-        };
+    int32_t len = strlen(buffer);
 
-    Clay_BeginLayout();
+    CLAY_TEXT(CLAY_STRING("Text we will send."), CLAY_TEXT_CONFIG((Clay_TextElementConfig){
+                                                     .fontId = FONTID_DEFAULT,
+                                                     .fontSize = 16,
+                                                     .textColor = {255, 255, 255, 255},
+                                                 }));
+}
 
+void RenderChatBar()
+{
     CLAY((Clay_ElementDeclaration){
-        .id = CLAY_ID("msg_log"),
-        .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(DARKGRAY),
         .layout = {
-            .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT(0)},
-            .layoutDirection = CLAY_TOP_TO_BOTTOM},
+            .layoutDirection = CLAY_LEFT_TO_RIGHT,
+            .sizing = {
+                .height = CLAY_SIZING_FIT(0),
+                .width = CLAY_SIZING_GROW(100),
+            },
+        },
     })
     {
+        CLAY((Clay_ElementDeclaration){
+            .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(BROWN),
+            .layout = {
+                .padding = {.right = 8},
+                .sizing = {
+                    .height = CLAY_SIZING_FIT(0),
+                    .width = CLAY_SIZING_GROW(100),
+                },
+            },
+        })
+        {
 
-        RenderMessageTree(&root, 0);
+            static char buffer[512] = "Text we will send";
 
-        // RenderMessage(root, 0);
-        // RenderMessage(*root.down, 1);
-        // RenderMessage(*root.down->down, 2);
-        // RenderMessage(*root.down->down->down, 3);
-        // RenderMessage(*root.down->down->down->down, 4);
-        // RenderMessage(*root.down->down->down->down->down, 5);
+            Render_TextBox(buffer, sizeof(buffer) - 1); // keep a null terminator in there (-1)
+        }
 
         if (Render_Button(CLAY_STRING("Send")))
         {
             printf("Write Me!\n");
         };
+    }
+}
+
+#pragma region // demo data
+
+const char *demo_names[] = {
+    "System",
+    "MX-5050",
+    "6625",
+    "W01F-5088",
+    "0013",
+    "PZ-9447",
+    "4440",
+    "9790",
+    "0001",
+    "0002",
+    "Queen Hour",
+    "0003",
+    "0004",
+    "0005",
+    "0007",
+};
+
+const char *demo_msgs[] = {
+    "First!!",
+    "Hello world!",
+    "Hello, and welcome back!",
+    "Goshhh.",
+    "*purrs*",
+    "Afafafaf",
+    "Yeahhhh~",
+    "Admit it:\nthis is the 2nd line.",
+    "We are us are each other are it",
+    "Mmmwwuufff.",
+};
+
+const char *RandomName() { return demo_names[GetRandomValue(0, (sizeof(demo_names) / sizeof(demo_names[0]) - 1))]; }
+const char *RandomMessage() { return demo_msgs[GetRandomValue(0, (sizeof(demo_msgs) / sizeof(demo_msgs[0]) - 1))]; }
+
+hc_MsgTree BuildDemoTree()
+{
+    hc_MsgTree ret = {0};
+
+    hc_MsgTree *n = &ret;
+
+    n->auther.name = hc_slice_from(demo_names[0]);
+    n->content.text = hc_slice_from(demo_msgs[0]);
+
+    int downs = 20;
+
+    for (size_t i = 0; i < downs; i++)
+    {
+        n->down = malloc(sizeof(hc_MsgTree));
+        memset(n->down, 0, sizeof(hc_MsgTree));
+        n->down->auther.name = hc_slice_from(RandomName());
+        n->down->content.text = hc_slice_from(RandomMessage());
+        n = n->down;
+    }
+
+    for (size_t branches = 0; branches < 3; branches++)
+    {
+        n = &ret;
+        int randval = GetRandomValue(0, downs - 1);
+
+        for (size_t i = 0; i < randval; i++)
+        {
+            if (n->down == NULL)
+                break;
+
+            n = n->down;
+        }
+
+        randval = GetRandomValue(1, 5);
+        for (size_t i = 0; i < randval; i++)
+        {
+            n->right = malloc(sizeof(hc_MsgTree));
+            memset(n->right, 0, sizeof(hc_MsgTree));
+            n->right->auther.name = hc_slice_from(RandomName());
+            n->right->content.text = hc_slice_from(RandomMessage());
+            n = n->right;
+        }
+    }
+
+    return ret;
+}
+
+#pragma endregion // demo data
+
+Clay_RenderCommandArray DoLayout()
+{
+
+    Clay_BeginLayout();
+
+    static hc_MsgTree *root = 0;
+    if (root == NULL || IsKeyPressed(KEY_F1))
+    {
+        // LEAKing root if its not null... (who cares, its demo data)
+
+        hc_MsgTree tree = BuildDemoTree();
+        root = malloc(sizeof(hc_MsgTree));
+        *root = tree;
+    }
+
+    CLAY((Clay_ElementDeclaration){
+        .id = CLAY_ID("comp_msg"),
+        .layout = {
+            .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0)},
+            .layoutDirection = CLAY_TOP_TO_BOTTOM,
+        },
+    })
+    {
+        CLAY((Clay_ElementDeclaration){
+            .id = CLAY_ID("Messages"),
+            .clip = {.vertical = true, .childOffset = Clay_GetScrollOffset()},
+            .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(DARKGRAY),
+            .layout = {
+                .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_FIT(0)},
+                .layoutDirection = CLAY_TOP_TO_BOTTOM,
+            },
+        })
+        {
+            int idx = 0;
+            RenderMessageTree(root, &idx);
+            // printf("%d messages\n", idx);
+        }
+
+        CLAY((Clay_ElementDeclaration){.id = CLAY_ID("FILL SPACE"), .layout = {.sizing = {.height = CLAY_SIZING_GROW(0)}}}) {}
+
+        RenderChatBar();
     }
 
     return Clay_EndLayout();
