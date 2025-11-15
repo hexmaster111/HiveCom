@@ -254,7 +254,7 @@ void RenderMessageTree(hc_MsgTree *root, int *i)
 
 void Render_TextBox(char *buffer, size_t bufferSize)
 {
-    int32_t len = strlen(buffer);
+    // int32_t len = strlen(buffer);
 
     CLAY_TEXT(CLAY_STRING("Text we will send."), CLAY_TEXT_CONFIG((Clay_TextElementConfig){
                                                      .fontId = FONTID_DEFAULT,
@@ -328,7 +328,11 @@ const char *demo_msgs[] = {
     "Afafafaf",
     "Yeahhhh~",
     "Admit it:\nthis is the 2nd line.",
+    "1...\n2....\n3...\n4....\n5....\n6....\n6.....\n6....\ndrop",
     "We are us are each other are it",
+    "This is a demo message that is really really really really really really really really really really really really "
+    "really really really really really really really really really really really really really really really really really really "
+    "really really really really really really really really really really really really really really really really really really long"
     "Mmmwwuufff.",
 };
 
@@ -344,7 +348,7 @@ hc_MsgTree BuildDemoTree()
     n->auther.name = hc_slice_from(demo_names[0]);
     n->content.text = hc_slice_from(demo_msgs[0]);
 
-    int downs = 20;
+    int downs = 50;
 
     for (size_t i = 0; i < downs; i++)
     {
@@ -355,7 +359,7 @@ hc_MsgTree BuildDemoTree()
         n = n->down;
     }
 
-    for (size_t branches = 0; branches < 3; branches++)
+    for (size_t branches = 0; branches < 5; branches++)
     {
         n = &ret;
         int randval = GetRandomValue(0, downs - 1);
@@ -384,11 +388,8 @@ hc_MsgTree BuildDemoTree()
 
 #pragma endregion // demo data
 
-Clay_RenderCommandArray DoLayout()
+void RenderChatArea()
 {
-
-    Clay_BeginLayout();
-
     static hc_MsgTree *root = 0;
     if (root == NULL || IsKeyPressed(KEY_F1))
     {
@@ -400,7 +401,7 @@ Clay_RenderCommandArray DoLayout()
     }
 
     CLAY((Clay_ElementDeclaration){
-        .id = CLAY_ID("comp_msg"),
+        .id = CLAY_ID("Messages"),
         .layout = {
             .sizing = {.width = CLAY_SIZING_GROW(0), .height = CLAY_SIZING_GROW(0)},
             .layoutDirection = CLAY_TOP_TO_BOTTOM,
@@ -408,7 +409,7 @@ Clay_RenderCommandArray DoLayout()
     })
     {
         CLAY((Clay_ElementDeclaration){
-            .id = CLAY_ID("Messages"),
+            .id = CLAY_ID("MsgTreeHolder"),
             .clip = {.vertical = true, .childOffset = Clay_GetScrollOffset()},
             .backgroundColor = RAYLIB_COLOR_TO_CLAY_COLOR(DARKGRAY),
             .layout = {
@@ -419,12 +420,66 @@ Clay_RenderCommandArray DoLayout()
         {
             int idx = 0;
             RenderMessageTree(root, &idx);
-            // printf("%d messages\n", idx);
         }
 
         CLAY((Clay_ElementDeclaration){.id = CLAY_ID("FILL SPACE"), .layout = {.sizing = {.height = CLAY_SIZING_GROW(0)}}}) {}
 
         RenderChatBar();
+    }
+}
+
+void RenderUsers()
+{
+    CLAY((Clay_ElementDeclaration){
+        .id = CLAY_ID("RenderUsers()"),
+        .layout = {.layoutDirection = CLAY_TOP_TO_BOTTOM},
+    })
+    {
+        for (size_t i = 0; i < sizeof(demo_names) / sizeof(demo_names[0]); i++)
+        {
+
+            Clay_String username = {
+                .chars = demo_names[i],
+                .length = strlen(demo_names[i]),
+                .isStaticallyAllocated = 1,
+            };
+
+            CLAY((Clay_ElementDeclaration){
+                .layout = {.sizing = {.width = CLAY_SIZING_GROW(0)}},
+                .border = {
+                    .width = {
+                        .top = Clay_Hovered() ? 1 : 0,
+                        .bottom = Clay_Hovered() ? 1 : 0,
+                    },
+                    .color = RAYLIB_COLOR_TO_CLAY_COLOR(WHITE),
+                },
+            })
+            {
+
+                CLAY_TEXT(username, CLAY_TEXT_CONFIG((Clay_TextElementConfig){
+                                        .fontId = FONTID_DEFAULT,
+                                        .fontSize = 16,
+                                        .textColor = RAYLIB_COLOR_TO_CLAY_COLOR(WHITE),
+                                    }));
+            }
+        }
+    }
+}
+
+Clay_RenderCommandArray DoLayout()
+{
+
+    Clay_BeginLayout();
+    // CLAY((Clay_ElementDeclaration){}){}
+
+    CLAY((Clay_ElementDeclaration){
+        .id = CLAY_ID("App"),
+        .layout = {.layoutDirection = CLAY_LEFT_TO_RIGHT},
+
+    })
+    {
+        RenderUsers();
+        RenderChatArea();
     }
 
     return Clay_EndLayout();
